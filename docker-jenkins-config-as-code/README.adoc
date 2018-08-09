@@ -1,0 +1,30 @@
+= Jenkins Configuration-as-Code
+
+
+
+Warning! Jenkins security has been disabled.
+
+== jenkins_config/shared
+
+* init.groovy.d: groovy startup scripts
+* startup.groovy: disables security
+
+== Configuration As Code Plugin
+
+Dockerfile: Dockerfile used to build image
+
+plugins.txt: jenkins plugins installed to the docker image
+
+
+### Usage
+
+Build image:
+
+`docker build -t docker-jenkins-casc .`
+
+
+Run image:
+
+`docker run --rm --name jenkinsdev -p 8080:8080 -p 50000:50000 docker-jenkins-casc`
+
+

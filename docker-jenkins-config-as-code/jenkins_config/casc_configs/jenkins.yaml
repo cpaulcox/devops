@@ -1,0 +1,12 @@
+jenkins:
+  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code Plugin\n\n"
+  numExecutors: 5
+  scmCheckoutRetryCount: 2
+  mode: NORMAL
+unclassified:
+  githubpluginconfig:
+    configs:
+    - name: "InHouse GitHub EE"
+      apiUrl: "https://github.domain.local/api/v3"
+      credentialsId: "[GitHubEEUser]"
+      manageHooks: true
