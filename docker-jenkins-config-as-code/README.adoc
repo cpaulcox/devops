@@ -11,6 +11,8 @@ Warning! Jenkins security has been disabled.
 
 == Configuration As Code Plugin
 
+Config samples taken from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
+
 Dockerfile: Dockerfile used to build image
 
 plugins.txt: jenkins plugins installed to the docker image

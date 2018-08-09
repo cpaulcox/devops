@@ -11,6 +11,9 @@ ENV CASC_JENKINS_CONFIG="/usr/share/jenkins/casc"
 ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false \
               -Duser.timezone=Europe/London
 
+USER root 
+RUN apt -y install git
+
 USER jenkins
 
 # install jenkins plugins

@@ -3,9 +3,6 @@
 import java.util.logging.Logger
 import jenkins.model.Jenkins
 import hudson.model.*
-import hudson.markup.RawHtmlMarkupFormatter
-import javaposse.jobdsl.dsl.DslScriptLoader
-import javaposse.jobdsl.plugin.JenkinsJobManagement
 
 /**
  * Startup script

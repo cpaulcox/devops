@@ -115,3 +115,4 @@ workflow-step-api:latest
 workflow-support:latest
 ws-cleanup:latest
 configuration-as-code:0.11-alpha
+jacoco:latest

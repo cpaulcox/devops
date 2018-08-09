@@ -3,7 +3,25 @@ jenkins:
   numExecutors: 5
   scmCheckoutRetryCount: 2
   mode: NORMAL
+
+
+tool:
+  git:
+    installations:
+      - name: git
+        home: git
+#  gradle:
+#    installations:
+#      - name: gradle
+#        home: ~/gradle
+
+security:
+    remotingCLI:
+        enabled: false
+
 unclassified:
+  location:
+    url: "http://localhost:8080/jenkins/"
   githubpluginconfig:
     configs:
     - name: "InHouse GitHub EE"
