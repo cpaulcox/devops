@@ -28,3 +28,61 @@ unclassified:
       apiUrl: "https://github.domain.local/api/v3"
       credentialsId: "[GitHubEEUser]"
       manageHooks: true
+
+# Copied from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/jobs
+jobs:
+  - script: >
+      organizationFolder('Github Organization Folder') {
+        description("Github org folder")
+        displayName('Seed Job')
+
+        triggers {
+          cron('@daily')
+        }
+        
+        // "Projects"
+        organizations {
+
+          //Possible solutions: repoOwner(), apiUri(), buildForkPRHead(), buildForkPRMerge(), buildOriginBranch(), buildOriginBranchWithPR(), buildOriginPRHead(), buildOriginPRMerge(), credentialsId(), excludes(), includes(), pattern(), scanCredentialsId(), traits()
+
+          github {
+            apiUri("https://api.github.com/")
+            repoOwner("cpaulcox")
+            //credentialsId("bitbucket-http")
+
+            // "Traits" ("Behaviours" in the GUI) that are "declarative-compatible" 
+            traits {        
+              webhookRegistrationTrait {
+                mode('ITEM')
+              } 
+              submoduleOptionTrait {
+                extension {
+                  disableSubmodules(false)
+                  recursiveSubmodules(true)
+                  trackingSubmodules(false)
+                  reference(null)
+                  timeout(null)
+                  parentCredentials(true)
+                }
+              }
+            }
+          }
+
+        }
+
+        // "Project Recognizers"
+        projectFactories {
+            workflowMultiBranchProjectFactory {
+                scriptPath 'Jenkinsfile'
+            }
+        }
+
+        // "Orphaned Item Strategy"
+        orphanedItemStrategy {
+          discardOldItems {
+            daysToKeep(-1)
+            numToKeep(-1)
+          }
+        }
+      }
+      
