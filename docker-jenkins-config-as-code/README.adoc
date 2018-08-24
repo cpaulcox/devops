@@ -9,7 +9,7 @@ Warning! Jenkins security has been disabled.
 * init.groovy.d: groovy startup scripts
 * startup.groovy: disables security
 
-== Configuration As Code Plugin
+== Configuration As Code (CasC) Plugin
 
 Config samples taken from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
 
@@ -18,7 +18,7 @@ Dockerfile: Dockerfile used to build image
 plugins.txt: jenkins plugins installed to the docker image
 
 
-### Usage
+=== Usage
 
 Build image:
 
@@ -29,4 +29,27 @@ Run image:
 
 `docker run --rm --name jenkinsdev -p 8080:8080 -p 50000:50000 docker-jenkins-casc`
 
+
+Run image binding to docker sock (insecure!):
+
+`docker run --rm --user root --privileged --name jenkinsdev -p 8080:8080 -p 50000:50000  -v /var/run/docker.sock:/var/run/docker.sock docker-jenkins-casc`
+
+=== Volumes
+
+Volume mapping used to contain the CasC plugin config files
+
+Copy to Docker volume via a dummy container (from https://github.com/moby/moby/issues/25245):
+
+ docker container create --name dummy -v jenkins_casc:/root hello-world
+ docker cp casc_configs/jenkins.yaml dummy:/root/jenkins.yaml
+ docker rm dummy
+
+==== Useful Links
+
+https://github.com/trion-development/docker-jenkins-docker-client
+
+
+Use of certs:
+
+https://docs.docker.com/engine/security/https/#secure-by-default
 

@@ -35,35 +35,26 @@ jobs:
       organizationFolder('Github Organization Folder') {
         description("Github org folder")
         displayName('Seed Job')
-
         triggers {
           cron('@daily')
         }
         
         configure { node ->
-        def traits = node / navigators / 'com.cloudbees.jenkins.plugins.github_branch_source.GitHubSCMNavigator' / traits
+        node / navigators / 'org.jenkinsci.plugins.github_branch_source.GitHubSCMNavigator' {
+          repoOwner "cpaulcox"
+          apiUri "https://api.github.com/"
+        }
+        def traits = node / navigators / 'org.jenkinsci.plugins.github_branch_source.GitHubSCMNavigator' / traits
         //traits << 'jenkins.scm.impl.trait.RegexSCMSourceFilterTrait' {
         //    regex('.*')   
         //}
-        traits << 'com.cloudbees.jenkins.plugins.github_branch_source.BranchDiscoveryTrait' {
+        traits << 'org.jenkinsci.plugins.github_branch_source.BranchDiscoveryTrait' {
             strategyId('1')   
         }
         traits << 'jenkins.scm.impl.trait.RegexSCMHeadFilterTrait' {
             regex('.*')   
         }
 
-        }
-
-        // "Projects"
-        organizations {
-
-          //Possible solutions: repoOwner(), apiUri(), buildForkPRHead(), buildForkPRMerge(), buildOriginBranch(), buildOriginBranchWithPR(), buildOriginPRHead(), buildOriginPRMerge(), credentialsId(), excludes(), includes(), pattern(), scanCredentialsId(), traits()
-          // See https://jenkinsci.github.io/job-dsl-plugin/#method/javaposse.jobdsl.dsl.helpers.workflow.BranchSourcesContext.github
-
-          github {
-            apiUri("https://api.github.com/")
-            repoOwner("cpaulcox")
-          }
         }
 
         // "Project Recognizers"

@@ -14,6 +14,9 @@ ENV JAVA_OPTS -Djenkins.install.runSetupWizard=false \
 USER root 
 RUN apt -y install git
 
+RUN curl https://get.docker.com/builds/Linux/x86_64/docker-latest.tgz | tar xvz -C /tmp/ && \
+  mv /tmp/docker/docker /usr/bin/docker
+
 USER jenkins
 
 # install jenkins plugins
