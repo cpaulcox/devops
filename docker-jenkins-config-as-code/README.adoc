@@ -20,6 +20,10 @@ plugins.txt: jenkins plugins installed to the docker image
 
 === Usage
 
+Update Jenkins image to latest:
+
+`docker pull jenkins`
+
 Build image:
 
 `docker build -t docker-jenkins-casc .`
@@ -53,3 +57,13 @@ Use of certs:
 
 https://docs.docker.com/engine/security/https/#secure-by-default
 
+=== CasC Configuration
+
+Configures a Github organisation project.  Only the Github credentials need adding manually to do this inside the Jenkins UI:
+. Seed Job -> Configuration
+. Projects -> Credentials (to Seed Job scope)
+. Credentials -> Github Username and Password (SSH Key is not supported)
+. Credentials Drop down select the newly entered credentials.
+. Save and the project will be automatically scanned.
+
+Note anonymous access will work for public but Github throttles such accesses making it almost unusable in practice.
