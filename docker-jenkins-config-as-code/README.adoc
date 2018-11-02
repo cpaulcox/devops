@@ -1,5 +1,8 @@
 = Jenkins Configuration-as-Code
 
+Rationale...  https://jenkins.io/blog/2018/08/23/speaker-blog-casc-part-1/
+
+
 == Configuration As Code (CasC) Plugin
 
 Config samples taken from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
@@ -28,6 +31,20 @@ Run image:
 Run image binding to docker sock (insecure!):
 
 `docker run --rm --user root --privileged --name jenkinsdev -p 8080:8080 -p 50000:50000  -v /var/run/docker.sock:/var/run/docker.sock docker-jenkins-casc`
+
+Run Image with environment variables:
+
+`docker run --rm --name jenkinsdev -p 8080:8080 -p 50000:50000 -e admin_user='bob' -e admin_pwd='passwd' -e github_user=billy -egithub_pwd=passwd111 -e github-repo-owner=billy docker-jenkins-casc`
+
+This is not secure, it's better to use Docker and Kubernetes secrets for the passwords.
+
+The environment variables are:
+
+- admin_user - the Jenkins admin user name
+- admin_pwd - the Jenkins admin password
+- github_user - the user account used by the Jenkins "Seed Job" to perform git/github commands
+- github_pwd - the git hub account password
+- github-repo-owner - the github owner/organisation name e.g. `https://github.com/{orgName}`
 
 === Volumes
 

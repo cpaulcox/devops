@@ -10,8 +10,8 @@ jenkins:
     local:
       allowsSignup: false
       users:
-       - id: demoAdmin
-         password: ${adminpw:-passw0rd}  # TODO
+       - id: ${admin_user:-admin}
+         password: ${admin_pwd:-passw0rd}
   authorizationStrategy:
     globalMatrix:
       grantedPermissions:
@@ -26,10 +26,10 @@ credentials:
     domainCredentials:
       - credentials:
           - usernamePassword: 
-              scope:    SYSTEM
+              scope:    GLOBAL  # scope SYSTEM does not appear in github org job credentials drop-down
               id:       github-user
-              username: ReleasePraqma
-              password: password1 #${github}  # TODO
+              username: ${github_user}
+              password: ${github_pwd}
           # - basicSSHUserPrivateKey: 
           #     scope: SYSTEM
           #     id: agent-private-key
@@ -62,10 +62,11 @@ unclassified:
     configs:
     - name: "InHouse GitHub EE"
       apiUrl: "https://github.domain.local/api/v3"
-      credentialsId: "[GitHubEEUser]"
+      credentialsId: github-user
       manageHooks: true
 
 # Copied from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/jobs
+# For properties see https://javadoc.jenkins.io/plugin/github-branch-source/org/jenkinsci/plugins/github_branch_source/GitHubSCMNavigator.html
 jobs:
   - script: >
       organizationFolder('Github Organization Folder') {
@@ -77,8 +78,9 @@ jobs:
         
         configure { node ->
         node / navigators / 'org.jenkinsci.plugins.github_branch_source.GitHubSCMNavigator' {
-          repoOwner "cpaulcox"
+          repoOwner System.getenv("github-repo-owner")
           apiUri "https://api.github.com/"
+          credentialsId "github-user"
         }
         def traits = node / navigators / 'org.jenkinsci.plugins.github_branch_source.GitHubSCMNavigator' / traits
         //traits << 'jenkins.scm.impl.trait.RegexSCMSourceFilterTrait' {

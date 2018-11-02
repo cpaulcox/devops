@@ -24,7 +24,6 @@ USER jenkins
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
 
-# copy jenkins shared configuration
-COPY jenkins_config/shared $JENKINS_REF
+# copy jenkins CASC configuration
 COPY jenkins_config/casc_configs $CASC_JENKINS_CONFIG
 
