@@ -1,14 +1,5 @@
 = Jenkins Configuration-as-Code
 
-
-
-Warning! Jenkins security has been disabled.
-
-== jenkins_config/shared
-
-* init.groovy.d: groovy startup scripts
-* startup.groovy: disables security
-
 == Configuration As Code (CasC) Plugin
 
 Config samples taken from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
@@ -20,9 +11,9 @@ plugins.txt: jenkins plugins installed to the docker image
 
 === Usage
 
-Update Jenkins image to latest:
+Update Jenkins image to latest (assuming the default _lts_ tag) :
 
-`docker pull jenkins`
+`docker rmi jenkins\jenkins:lts`
 
 Build image:
 

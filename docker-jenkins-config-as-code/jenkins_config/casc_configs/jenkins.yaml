@@ -4,12 +4,48 @@ jenkins:
   scmCheckoutRetryCount: 2
   mode: NORMAL
 
+  agentProtocols: 
+    - "JNLP4-connect" 
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+       - id: demoAdmin
+         password: ${adminpw:-passw0rd}  # TODO
+  authorizationStrategy:
+    globalMatrix:
+      grantedPermissions:
+        - "Overall/Read:anonymous"
+        - "Job/Read:anonymous"
+        - "View/Read:anonymous"
+        - "Overall/Administer:authenticated"
+  crumbIssuer: "standard"
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword: 
+              scope:    SYSTEM
+              id:       github-user
+              username: ReleasePraqma
+              password: password1 #${github}  # TODO
+          # - basicSSHUserPrivateKey: 
+          #     scope: SYSTEM
+          #     id: agent-private-key
+          #     username: agentuser
+          #     passphrase:  ""
+          #     description: "ssh private key used to connect ssh slaves"
+          #     privateKeySource:
+          #       directEntry: # The key 'agent_private_key' resolved from a docker secret defined in docker-compose.yml          
+          #     privateKey: ${agent_private_key}
 
 tool:
   git:
     installations:
       - name: git
         home: git
+# Not needed as builds are done within Docker containers with specific toolchains
 #  gradle:
 #    installations:
 #      - name: gradle

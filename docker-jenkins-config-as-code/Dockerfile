@@ -1,4 +1,5 @@
-ARG version="latest"
+# Long term support version by default
+ARG version="lts"
 
 FROM jenkins/jenkins:$version
 
