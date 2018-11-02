@@ -70,10 +70,12 @@ unclassified:
 jobs:
   - script: >
       organizationFolder('Github Organization Folder') {
-        description("Github org folder")
-        displayName('Seed Job')
-        triggers {
-          cron('@daily')
+        description("Github org folder for ${System.getenv("github-repo-owner")}")
+        displayName(System.getenv("github-repo-owner"))
+        triggers {  // Scans the organisation for new repos/branches on a schedule
+          //cron('@daily')
+          //cron('* * * * *')  // every minute
+          cron('*/5 * * * *') // every 5 minutes
         }
         
         configure { node ->
@@ -87,7 +89,10 @@ jobs:
         //    regex('.*')   
         //}
         traits << 'org.jenkinsci.plugins.github_branch_source.BranchDiscoveryTrait' {
-            strategyId('1')   
+            // strategy Id 1 = Exclude branches that are also filed as PRs
+            // strategy Id 2 = Only branches that are also filed as PRs
+            // strategy Id 3 = All branches
+            strategyId('3')   
         }
         traits << 'jenkins.scm.impl.trait.RegexSCMHeadFilterTrait' {
             regex('.*')   

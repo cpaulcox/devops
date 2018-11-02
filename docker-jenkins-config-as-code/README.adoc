@@ -1,18 +1,21 @@
 = Jenkins Configuration-as-Code
 
-Rationale...  https://jenkins.io/blog/2018/08/23/speaker-blog-casc-part-1/
+The general rationale is described here:  https://jenkins.io/blog/2018/08/23/speaker-blog-casc-part-1/
 
+== Features
 
-== Configuration As Code (CasC) Plugin
+- Zero manual configuration.  Once the Docker container is run it will auto-discover repos and start building.
+- Intended for use by a single github user or github organisation account.
+- Runs as a Docker container with sensitive data passed as either environment variables or as Docker/Kubernetes secrets
+- Jobs are automatically created by scanning the github organisation for repos/branches with a `Jenkinsfile` in the root of the repo.
+- Additional plugins can be added by adding values to plugins.txt and configuration added to `casc_configs/jenkins.yaml`
+- It's assumed, but not mandated, that specific toolchains will be handled by the Jenkinsfile possibly within Docker containers.
 
-Config samples taken from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
+== Implementation
 
-Dockerfile: Dockerfile used to build image
+The implementation relies on the Configuration As Code (CasC) Plugin and Github Organisation support.  CASC config samples are taken from https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos
 
-plugins.txt: jenkins plugins installed to the docker image
-
-
-=== Usage
+=== Building the Docker Image
 
 Update Jenkins image to latest (assuming the default _lts_ tag) :
 
@@ -22,21 +25,20 @@ Build image:
 
 `docker build -t docker-jenkins-casc .`
 
+=== Running the Docker Container
 
-Run image:
+Basic usage.  This assumes the admin user, github user and repo owner environment variables are set elsewhere or specified as secrets.
 
 `docker run --rm --name jenkinsdev -p 8080:8080 -p 50000:50000 docker-jenkins-casc`
 
 
-Run image binding to docker sock (insecure!):
+To build Docker images within a Docker container need access to the Docker host's Docker daemon.  Running the container as `root` is the simplest but least secure.
 
 `docker run --rm --user root --privileged --name jenkinsdev -p 8080:8080 -p 50000:50000  -v /var/run/docker.sock:/var/run/docker.sock docker-jenkins-casc`
 
-Run Image with environment variables:
+Run container with environment variables on the command line.  This isn't secure as passwords are in clear text.  It's better to use Docker and Kubernetes secrets for the passwords.
 
 `docker run --rm --name jenkinsdev -p 8080:8080 -p 50000:50000 -e admin_user='bob' -e admin_pwd='passwd' -e github_user=billy -egithub_pwd=passwd111 -e github-repo-owner=billy docker-jenkins-casc`
-
-This is not secure, it's better to use Docker and Kubernetes secrets for the passwords.
 
 The environment variables are:
 
@@ -46,32 +48,19 @@ The environment variables are:
 - github_pwd - the git hub account password
 - github-repo-owner - the github owner/organisation name e.g. `https://github.com/{orgName}`
 
-=== Volumes
-
-Volume mapping used to contain the CasC plugin config files
-
-Copy to Docker volume via a dummy container (from https://github.com/moby/moby/issues/25245):
-
- docker container create --name dummy -v jenkins_casc:/root hello-world
- docker cp casc_configs/jenkins.yaml dummy:/root/jenkins.yaml
- docker rm dummy
-
 ==== Useful Links
 
-https://github.com/trion-development/docker-jenkins-docker-client
-
+- https://github.com/trion-development/docker-jenkins-docker-client
+- https://javadoc.jenkins.io/plugin/
 
 Use of certs:
 
 https://docs.docker.com/engine/security/https/#secure-by-default
 
-=== CasC Configuration
+== Known Limitations
 
-Configures a Github organisation project.  Only the Github credentials need adding manually to do this inside the Jenkins UI:
-. Seed Job -> Configuration
-. Projects -> Credentials (to Seed Job scope)
-. Credentials -> Github Username and Password (SSH Key is not supported)
-. Credentials Drop down select the newly entered credentials.
-. Save and the project will be automatically scanned.
+. In theory with appropriate configuration, Github will notify about the creation and removal of branches.  5 minute polling is also hardcoded in the CASC config file `jenkins.yaml`
+. Repo selection is hardcoded to all branches - see the regexs and strategy Id in `jenkins.yaml`
+. Build slaves are not configured as this tends to be highly project specific.
+. Building Docker images without running as root needs exploring if needed.
 
-Note anonymous access will work for public but Github throttles such accesses making it almost unusable in practice.
