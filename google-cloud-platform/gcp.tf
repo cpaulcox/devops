@@ -1,11 +1,14 @@
 # TODO
 
-# CIDR ranges
 # Loadbalancer and rules L7?
 # firewall rule
-# create instance in a subnet
 # forwarding rule?
+# firewall rules on a subnet
 
+# https://tools.ietf.org/html/rfc1918 Private address ranges must be used for subnets
+#  10.0.0.0        -   10.255.255.255  (10/8 prefix)
+#  172.16.0.0      -   172.31.255.255  (172.16/12 prefix)
+#  192.168.0.0     -   192.168.255.255 (192.168/16 prefix)
 
 # Provider
 # Everything is owned by a project
@@ -24,6 +27,8 @@ provider "google" {
 #
 # Network Toplogy
 #
+# 172.16.0.0/24 (256 addresses - least significant octet)
+# 172.16.1.0/24 (256 addresses - least significant octet)
 #-------------------------------------------------------------------
 
 # network
@@ -36,7 +41,7 @@ resource "google_compute_network" "sky_net" {
 
 resource "google_compute_subnetwork" "sky_subnet_app_server" {
   name          = "app-servers-subnet"
-  ip_cidr_range = "10.2.0.0/16"
+  ip_cidr_range = "172.16.0.0/24"
   region        = "us-central1"
   network       = "${google_compute_network.sky_net.self_link}"
 #   secondary_ip_range {
@@ -47,7 +52,7 @@ resource "google_compute_subnetwork" "sky_subnet_app_server" {
 
 resource "google_compute_subnetwork" "sky_subnet_database" {
   name          = "databases-subnet"
-  ip_cidr_range = "10.2.0.0/16"
+  ip_cidr_range = "172.16.1.0/24"
   region        = "us-central1"
   network       = "${google_compute_network.sky_net.self_link}"
 #   secondary_ip_range {
@@ -86,6 +91,15 @@ resource "google_compute_route" "net_route_1" {
   priority    = 100
   #tags # list of instance tags to which the rule applies e.g. app_server_node or database_node
   #next_hop_gateway = "global/gateways/default-internet-gateway"  # only the Internet gateway is currently supported
+}
+
+# lowest priority route applies to all IP addresses.  If nothing matches first then send to the Internet
+resource "google_compute_route" "internet_route" {
+  name        = "internet-route"
+  dest_range  = "0.0.0.0/0"  # IPV4 packet range of outgoing packets i.e. outgoing packets with this range of destination IPs goto the internet gateway
+  network     = "${google_compute_network.sky_net.name}"
+  priority    = 999
+  next_hop_gateway = "global/gateways/default-internet-gateway"  # only the Internet gateway is currently supported
 }
 
 
@@ -148,13 +162,10 @@ resource "google_compute_health_check" "default" {
 #
 #-------------------------------------------------------------------
 
-
-
 resource "google_compute_instance" "terminator_1" {
   name         = "terminator-1"
   machine_type = "f1-micro"
   zone        = "us-central1-c"
-
 
   boot_disk {
     initialize_params {
