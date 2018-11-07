@@ -123,7 +123,7 @@ resource "google_compute_firewall" "default" {
     ports    = ["80", "8080", "1000-2000"]
   }
 
-  source_tags = ["web"]
+  source_tags = ["app-server"]
 }
 
 #-------------------------------------------------------------------
@@ -180,4 +180,11 @@ resource "google_compute_instance" "terminator_1" {
     access_config = {
     }
   }
+
+  labels = [
+    { environment = "test" }
+    ]
+    
+  
+  tags = ["app-server"]
 }
