@@ -16,7 +16,7 @@ provider "google" {
   credentials = "${file("../../account.json")}"
   #project     = "my-project-id" use env-var instead export GOOGLE_PROJECT=xxxxxxx
   region      = "us-central1"    # always free tier
-  zone        = "us-central1-c"
+  zone        = "us-central1-b"
 }
 
 # Default service account
@@ -87,7 +87,7 @@ resource "google_compute_route" "net_route_1" {
   name        = "network-route-1"
   dest_range  = "15.0.0.0/24"  # IPV4 packet range of outgoing packets i.e. outgoing packets with this range of destination IPs goto the internet gateway
   network     = "${google_compute_network.sky_net.name}"
-  next_hop_ip = "10.132.1.5"  # Network IP address of an instance that should handle matching packets
+  next_hop_ip = "172.16.1.99"  # Network IP address of an instance that should handle matching packets
   priority    = 100
   #tags # list of instance tags to which the rule applies e.g. app_server_node or database_node
   #next_hop_gateway = "global/gateways/default-internet-gateway"  # only the Internet gateway is currently supported
@@ -166,7 +166,7 @@ resource "google_compute_health_check" "default" {
 resource "google_compute_instance" "terminator_1" {
   name         = "terminator-1"
   machine_type = "f1-micro"
-  zone        = "us-central1-c"
+  #zone        = "us-central1-b"
 
   boot_disk {
     initialize_params {
