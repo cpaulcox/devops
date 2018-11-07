@@ -1,0 +1,119 @@
+= Google Cloud Platform (GCP)
+
+== Compute
+
+Feature 	                Amazon EC2 	            Compute Engine
+Virtual machines 	        Instances 	            Instances
+Machine images 	            Amazon Machine Image 	Image
+Temporary vms 	            Spot instances 	        Preemptible VMs
+Firewall 	                Security groups 	    Compute Engine firewall rules
+Automatic instance scaling 	Auto Scaling 	        Compute Engine autoscaler
+Local attached disk 	    Ephemeral disk 	        Local SSD
+VM import formats           RAW, OVA, VMDK, VHD 	RAW
+Deployment locality 	    Zonal 	                Zonal
+
+With Amazon EC2, you must include your own SSH key if you want terminal access to the instance. In contrast, on Compute Engine, you can create the key when you need it, even if your instance is already running. If you choose to use Compute Engine's browser-based SSH terminal, which is available in the Google Cloud Platform Console, you can avoid storing keys on your local machine altogether.
+
+
+Compute Engine allows you to depart from the predefined configurations, customizing your instance's CPU and RAM resources to fit your workload.
+
+Compute Engine does not currently offer large magnetic storage.
+
+Unlike Amazon EC2, Compute Engine does not have a mechanism for making an image publicly available, nor does it have a community repository of available images to draw from. However, you can share images informally by exporting your images to Cloud Storage and making them publicly available.
+
+Amazon's machine images are available only within a specific region. In contrast, Compute Engine's machine images are globally available.
+
+
+Compute Engine's autoscaler scales instances within a managed instance group. The autoscaler creates and removes instances according to an autoscaling policy. Each new instance within the instance group is created from an instance template.  (Basically same as AWS just different terminology e.g. instance template == launch configuration
+
+
+Amazon's Auto Scaling allows for three scaling plans:
+
+    Manual, in which you manually instruct Auto Scaling to scale up or down.
+    Scheduled, in which you configure Auto Scaling to scale up or down at scheduled times.
+    Dynamic, in which Auto Scaling scales based on a policy. You can create policies based on either Amazon CloudWatch metrics or Amazon Simple Queue Service (SQS) queues.
+
+In contrast, Compute Engine's autoscaler supports only dynamic scaling. You can create policies based on average CPU utilization, HTTP load balancing serving capacity, or Stackdriver Monitoring metrics.
+
+Amazon EC2 and Compute Engine both support networked and locally attached block storage.
+
+Amazon EC2 and Amazon Virtual Private Cloud (VPC) use security groups and network access control lists (NACLs) to allow or deny incoming and outgoing traffic. Amazon VPC security groups and NACLs secure both instances and network subnets in an Amazon VPC.
+
+Compute Engine uses firewall rules to secure Compute Engine virtual machine instances and networks. You create a rule by specifying the source IP address range, protocol, ports, or user-defined tags that represent source and target groups of virtual machine instances.
+
+Compute Engine uses a sustained-use discount model. In this model, Compute Engine automatically applies discounts to your instances depending on how long the instances are active in a given month.  No need to pre-defined reserved instances - no such facility in GCP.
+
+Functions as a Service (FaaS) platforms are designed to be purely transactional, deploying instances on a per-request basis, you cannot rely on them to continuously execute code beyond the initial request. You should design your application to be stateless and short-running. This applies to both Lambda and Cloud Functions. AWS will terminate execution after 5 minutes and Cloud Functions will do so after 9.
+
+== Networking
+
+When you create virtual machine instances in a Cloud Platform project, Compute Engine automatically connects them to a default internal network. If needed, you can create additional networks as well. As with Amazon VPC, each network is private, and each supports firewall rules, routing, VPNs, private RFC 1918 address spaces, and subnetting.
+
+Most of the networking entities in Cloud Platform, such as load balancers, firewall rules, and routing tables, have global scope. More importantly, networks themselves have a global scope. This means that you can create a single private IP space that is global, without having to connect multiple private networks and manage those spaces separately. Due to this single, global network, your Compute Engine instances can be addressed within your network by both IP address and name.
+
+Cloud Platform and Amazon VPC handle IP addresses in very similar ways. At launch, all instances have an internal IP. You can optionally request an external IP. By default, an external IP is ephemeral, meaning that it is tied to the life of the instance.
+
+You can also request a permanent IP address—called an Elastic IP in Amazon VPC and a static IP in Cloud Platform—to attach an instance. In both services, a static IP address is yours until you choose to release it, and can be attached to and detached from instances as needed.
+
+Internal IP means private IP within the VPC.  Public IP is Internet addressable but ephemeral.  Elastic IP is public and permanent and floating between instances.
+
+
+=== Load Balancers
+
+When you provision a Compute Engine load balancer, you're given a single, globally accessible IP address. This IP address can be used for the lifetime of the load balancer, so it can be used for DNS A Records, whitelists, or configurations in applications.  ELBs use cnames.  ELBs are regional.  GCP's L4 LB is regional.  Its L7 LB is global.  ELB does not scale instantly, and can take one to seven minutes to respond to changes in traffic. If you expect a sudden spike in traffic, you must request that AWS pre-warm your ELB to a certain traffic level.
+
+Compute Engine's load balancer also scales its capacity up or down based on the traffic being passed through it. However, it responds in real time to the traffic, without a delay or pre-warming.
+
+=== DNS
+
+Amazon Route 53 and Cloud DNS are very similar. Both support nearly all DNS record types, as well as anycast-based serving. Neither service currently supports DNSSEC.
+
+Amazon Route 53 supports two kinds of routing that Cloud DNS does not: geography-based routing and latency-based routing. Geography-based routing lets you restrict your content to certain geographic regions of the world. Latency-based routing lets you direct traffic based on the latency measured by the DNS service.
+
+=== Routes and Firewalls
+
+From https://www.networkmanagementsoftware.com/google-cloud-platform-gcp-networking-fundamentals/
+
+GCP is a global software-defined network with layers of controllers and impressive routing capabilities that have been mostly abstracted for the end-user. All networks have routes in order to communicate with each other.  The default network has a default route to the internet and individual routes to each subnet.
+
+Routes are considered a “network resource” and cannot be shared between projects or networks. Tables are used to tell which routes and rules apply to each VM instance. Routes could apply to multiple instances or single instances depending on the tags used in the route statement. If an instance tag is used, the route applies to that instance, and if an instance tag is not used, then the route applies to all instances in that network. Individual read-only route tables are created for each VM instance based off of the parent route table.
+
+Even though there are no “routers” in the software-defined network, you can still think of each VM instance as connected to some core router, with all traffic passing through it based on the perspective of each node’s individual route table.
+
+Routing decisions apply to traffic egressing a VM. The most specific route in the table will match. Traffic must match a route and firewall rule in order for it to pass.
+
+You can add custom static routes or setup BGP for dynamic routing between clouds or on-premises environments.
+
+Each VPC network has its own distributed firewall, which allows or denies traffic into and out of the network, and between VM instances. The firewall has an explicit-deny policy, meaning that any traffic that needs to be permitted must have a rule created.  You cannot create “deny” rules, only “allow” rules.
+
+If you have a concept in your mind that all this traffic is flowing through some single firewall chokepoint device somewhere, you’re mistaken. GCP is a full SDN, with firewall policies applied at the instance-level, no matter where it resides. These checks are performed immediately without having to funnel traffic through dedicated security appliances.
+
+Firewall rules can match IP addresses or ranges, but can also match tags.  Tags are user-defined strings that help organize firewall policies for standards-based policy approach. For example, you could have a tag called web-server, and have a firewall policy that says any VM with the tag web-server should have ports HTTP, HTTPS, and SSH opened.
+
+Firewall rules are at the network resource level and are not shared between projects are other networks.
+
+Another great thing about GCP is the way it handles DNS. When a VM instance is created, DNS entries are automatically created resolving to a formatted hostname.
+
+FQDN = <pre>[hostname].c.[project-id].internal</pre>
+
+So, if I had an instance named “porcupine” in my project called “tree”, my DNS FQDN would be:
+
+porcupine.c.tree.internal
+
+Resolution of this name is handled by an internal metadata server that acts as a DNS resolver (169.254.169.254), provided as a part of Google Compute Engine (GCE). This resolver will answer both internal queries and external DNS queries using Google’s public DNS servers.
+
+If an instance or service needs to be accessed publicly by FQDN, a public-facing DNS record will need to exist pointing to the external IP address of the instance or service. This can be done by publishing public DNS records. You have the option of using some external DNS service outside of GCP or using Google Cloud DNS.
+
+== Storage
+
+
+-    Distributed object storage, or redundant key-value stores in which you can store data objects. (S3 and Cloud Storage)
+-    Block storage, or virtual disk volumes that you can attach to virtual machine instances.
+-    File storage, or network-attached, file-server-based storage.
+-    Cool storage, or storage services designed to store data backups.
+-    Cold (archival) storage, or storage services designed to store archival data for compliance or analysis purposes.
+
+Compute Engine persistent disks and Amazon EBS are very similar in most ways. In both cases, disk volumes are network-attached, though both Compute Engine and Amazon EC2 also provide the ability to locally attach a disk if necessary. While networked disks have higher operational latency and less throughput than their locally attached counterparts, they have many benefits as well, including built-in redundancy, snapshotting, and ease of disk detachment and reattachment.
+
+
+https://codelabs.developers.google.com/codelabs/gcp-infra-vpn-and-cloud-router/

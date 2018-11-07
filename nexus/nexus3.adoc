@@ -1,0 +1,90 @@
+= Nexus 3
+
+== Using the Docker Image
+
+
+https://hub.docker.com/r/sonatype/nexus3/
+
+
+docker volume create --name nexus-data
+docker run -d -p 8081:8081 --name nexus -v nexus-data:/nexus-data sonatype/nexus3
+
+
+docker volume inspect nexus-data
+sudo ls /var/lib/docker/volumes/nexus-data/_data
+
+
+Default credentials are: admin / admin123
+
+
+== Additional Repositories
+
+Support for Maven, Python, Docker and Yum is built in.
+
+Define proxies for report repos (Maven Central is already set-up).
+
+
+https://pypi.org/
+
+Docker Hub Proxy
+
+Proxy URL https://registry-1.docker.io
+Index URL (accept default) - Use Docker Hub
+
+
+Docker Private Registry
+
+Docker hosted - add a name such as `docker-local` access URL is: http://localhost:8081/repository/docker-local/
+
+
+
+
+SSL Certs and 443
+
+
+System -> Tasks -> Export Databases for Backup
+
+
+http://exchange.sonatype.com/list
+
+R, Apt, Helm
+
+
+== S3 Blob Store
+
+https://blog.sonatype.com/nexus-repository-3.12-support-for-s3-blob-stores
+
+May also work with Openstack Swift as it has an S3 compatible API.  Would remove the need to backup (probably) and increases availability.
+
+See http://localhost:8081/#admin/repository/blobstores
+
+
+== Alternatives
+
+https://www.praqma.com/stories/artifactory-nexus-proget/
+
+
+
+
+
+docker run -d -p 8081:8081 -p 8100:8100 --name nexus -v nexus-data:/nexus-data sonatype/nexus3
+
+
+docker stop nexus
+docker rm nexus
+
+The volume keeps the config.  
+
+
+Disable HTTP basic authentication BUT enable Docker bearer token http://localhost:8081/#admin/security/realms
+
+This allows unathenticated access to the Docker Registry
+
+Also Create a Repository Connector and expose it via the docker container:
+
+e.g. HTTP on port 8100 for the Docker Hub Proxy
+
+docker pull localhost:8100/nginx:latest
+
+
+
