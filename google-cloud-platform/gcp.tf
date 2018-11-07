@@ -10,14 +10,14 @@
 # Provider
 # Everything is owned by a project
 provider "google" {
-  credentials = "${file("account.json")}"
+  credentials = "${file("../../account.json")}"
   #project     = "my-project-id" use env-var instead export GOOGLE_PROJECT=xxxxxxx
   region      = "us-central1"    # always free tier
   zone        = "us-central1-c"
 }
 
 # Default service account
-data "google_compute_default_service_account" "default" { }
+#data "google_compute_default_service_account" "default" { }
 
 
 #-------------------------------------------------------------------
@@ -154,7 +154,7 @@ resource "google_compute_instance" "terminator_1" {
   name         = "terminator-1"
   machine_type = "f1-micro"
   zone        = "us-central1-c"
-  subnetwork = "${google_compute_network.sky_subnet_app_server.self_link}"
+
 
   boot_disk {
     initialize_params {
@@ -164,7 +164,8 @@ resource "google_compute_instance" "terminator_1" {
 
   network_interface {  # can be many networks to attach to
     # A default network is created for all GCP projects
-    network       = "${google_compute_network.sky_net.self_link}"
+    #network       = "${google_compute_network.sky_net.self_link}"
+    subnetwork = "${google_compute_subnetwork.sky_subnet_app_server.self_link}"    
     access_config = {
     }
   }
