@@ -160,6 +160,7 @@ resource "google_compute_health_check" "default" {
 #
 # Compute
 #
+# https://www.terraform.io/docs/providers/google/r/compute_instance.html
 #-------------------------------------------------------------------
 
 resource "google_compute_instance" "terminator_1" {
