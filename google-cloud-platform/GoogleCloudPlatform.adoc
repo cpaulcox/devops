@@ -92,6 +92,8 @@ Firewall rules can match IP addresses or ranges, but can also match tags.  Tags 
 
 Firewall rules are at the network resource level and are not shared between projects are other networks.
 
+Every VPC network functions as a distributed firewall. While firewall rules are defined at the network level, connections are allowed or denied on a per-instance basis. You can think of the GCP firewall rules as existing not only between your instances and other networks, but between individual instances within the same network.
+
 Another great thing about GCP is the way it handles DNS. When a VM instance is created, DNS entries are automatically created resolving to a formatted hostname.
 
 FQDN = <pre>[hostname].c.[project-id].internal</pre>

@@ -1,3 +1,9 @@
+# Global: VPC, Routes, Firewalls
+# Regional: Static IP, Subnets
+# Zonal: Instances, Disks, Machine Types
+#
+# 
+
 # TODO
 
 # Loadbalancer and rules L7?
@@ -105,13 +111,13 @@ resource "google_compute_route" "internet_route" {
 
 #-------------------------------------------------------------------
 #
-# Firewall
+# Firewall Rules...Terraform resource is badly named
 #
 #-------------------------------------------------------------------
 
 
-resource "google_compute_firewall" "default" {
-  name    = "test-firewall"
+resource "google_compute_firewall" "firewall_rule_1" {
+  name    = "firewall-1"
   network = "${google_compute_network.sky_net.name}"
 
   allow {
@@ -123,12 +129,43 @@ resource "google_compute_firewall" "default" {
     ports    = ["80", "8080", "1000-2000"]
   }
 
+  # deny {
+
+  # }
   source_tags = ["app-server"]
+  //target_tags = ["app-server"]
+
+  // default = 1000
+  priority = 1000
+}
+
+resource "google_compute_firewall" "firewall_rule_2" {
+  name    = "firewall-2"
+  network = "${google_compute_network.sky_net.name}"
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80", "8080"]
+  }
+
+  # deny {
+
+  # }
+  //source_tags = ["database"]
+  // Does this mean the target instances only allow HTTP traffic?
+  target_tags = ["database"]
+
+  // default = 1000
+  priority = 1000
 }
 
 #-------------------------------------------------------------------
 #
-# LOad Balancer?
+# Load Balancer?
 #
 #-------------------------------------------------------------------
 
@@ -166,6 +203,7 @@ resource "google_compute_health_check" "default" {
 resource "google_compute_instance" "terminator_1" {
   name         = "terminator-1"
   machine_type = "f1-micro"
+  // Zone is required but defaults to the provider zone
   #zone        = "us-central1-b"
 
   boot_disk {
@@ -174,18 +212,38 @@ resource "google_compute_instance" "terminator_1" {
     }
   }
 
+  // Local SSD disk
+  # scratch_disk {
+  # }
+
   network_interface {  # can be many networks to attach to
     # A default network is created for all GCP projects
     #network       = "${google_compute_network.sky_net.self_link}"
-    subnetwork = "${google_compute_subnetwork.sky_subnet_app_server.self_link}"    
-    access_config = {
+    #network       = "default"
+    subnetwork = "${google_compute_subnetwork.sky_subnet_app_server.self_link}"
+
+    // Omit this block to ensure that the instance is not accessible from the Internet
+    access_config {
+      // Ephemeral public IP - auto-generated
     }
   }
+
+  metadata {
+    data = "visible inside instance"
+  }
+
+  // Does this conflict with the metadata key?
+  //metadata_startup_script = "echo hi > /test.txt"
 
   labels = [
     { environment = "test" }
     ]
-    
   
   tags = ["app-server"]
+
+  # Akin to EC2 Instance Profile - the bob-the-instance-builder for a Jenkins slave instance running acceptance tests on spawned VMs.
+  # service_account {
+  #   email = "bob@builder.com"
+  #   scopes = ["userinfo-email", "compute-ro", "storage-ro"]
+  # }
 }
