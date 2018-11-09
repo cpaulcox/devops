@@ -20,7 +20,7 @@
 # Everything is owned by a project
 provider "google" {
   credentials = "${file("../../account.json")}"
-  #project     = "my-project-id" use env-var instead export GOOGLE_PROJECT=xxxxxxx
+  //project     = "my-project-id" //use env-var instead export GOOGLE_PROJECT=xxxxxxx
   region      = "us-central1"    # always free tier
   zone        = "us-central1-b"
 }
@@ -165,36 +165,6 @@ resource "google_compute_firewall" "firewall_rule_2" {
 
 #-------------------------------------------------------------------
 #
-# Load Balancer?
-#
-#-------------------------------------------------------------------
-
-resource "google_compute_target_tcp_proxy" "default" {
-  name            = "test-proxy"
-  backend_service = "${google_compute_backend_service.default.self_link}"
-}
-
-resource "google_compute_backend_service" "default" {
-  name          = "backend-service"
-  protocol      = "TCP"
-  timeout_sec   = 10
-
-  health_checks = ["${google_compute_health_check.default.self_link}"]
-}
-
-resource "google_compute_health_check" "default" {
-  name               = "health-check"
-  timeout_sec        = 1
-  check_interval_sec = 1
-
-  tcp_health_check {
-    port = "443"
-  }
-}
-
-
-#-------------------------------------------------------------------
-#
 # Compute
 #
 # https://www.terraform.io/docs/providers/google/r/compute_instance.html
@@ -247,3 +217,118 @@ resource "google_compute_instance" "terminator_1" {
   #   scopes = ["userinfo-email", "compute-ro", "storage-ro"]
   # }
 }
+
+
+
+#-------------------------------------------------------------------
+#
+# TCP Load Balancer?
+#
+#-------------------------------------------------------------------
+
+resource "google_compute_target_tcp_proxy" "default" {
+  name            = "test-proxy"
+  backend_service = "${google_compute_backend_service.default.self_link}"
+}
+
+resource "google_compute_backend_service" "default" {
+  name          = "backend-service"
+  protocol      = "TCP"
+  timeout_sec   = 10
+
+  health_checks = ["${google_compute_health_check.default.self_link}"]
+}
+
+resource "google_compute_health_check" "default" {
+  name               = "health-check"
+  timeout_sec        = 1
+  check_interval_sec = 1
+
+  tcp_health_check {
+    port = "443"
+  }
+}
+
+#-------------------------------------------------------------------
+#
+# HTTP Proxy
+#
+#-------------------------------------------------------------------
+
+// The incoming rule to map ip addresses and ports to a http proxy.  Can be many to 1.
+resource "google_compute_global_forwarding_rule" "default" {
+  name       = "default-rule"
+  target     = "${google_compute_target_http_proxy.default.self_link}"
+  port_range = "80"
+}
+
+resource "google_compute_target_http_proxy" "default" {
+  name        = "test-proxy"
+  description = "a description"
+  url_map     = "${google_compute_url_map.default_url_map.self_link}"
+}
+
+// one big set of routing rules per proxy
+// Can have many back-end services (targets of a mapping rule)
+resource "google_compute_url_map" "default_url_map" {
+  name            = "url-map"
+  description     = "a description"
+  default_service = "${google_compute_backend_service.default.self_link}"
+
+  host_rule {
+    hosts        = ["mysite.com"]
+    path_matcher = "allpaths"
+  }
+
+  path_matcher {
+    name            = "allpaths"
+    default_service = "${google_compute_backend_service.default.self_link}"
+
+    path_rule {
+      paths   = ["/*"]
+      service = "${google_compute_backend_service.default.self_link}"
+    }
+  }
+}
+
+// https://www.terraform.io/docs/providers/google/d/datasource_google_compute_backend_service.html
+// defines session affinity, draining, load balancing generally
+resource "google_compute_backend_service" "http_proxy_backend" {
+  name        = "http-proxy-backend"
+  port_name   = "http"
+  protocol    = "HTTP"
+  timeout_sec = 10
+
+  backend = ["${google_compute_instance_group.webservers.self_link}"] //instance groups (list of VMs)
+
+  health_checks = ["${google_compute_http_health_check.http_health_check.self_link}"]
+}
+
+resource "google_compute_http_health_check" "http_health_check" {
+  name               = "http-health-check"
+  request_path       = "/"
+  check_interval_sec = 1
+  timeout_sec        = 1
+}
+resource "google_compute_instance_group" "webservers" {
+  name        = "terraform-webservers"
+  description = "Terraform test instance group"
+
+  //instances = [
+  //  "${google_compute_instance.terminator_1.self_link}"//,
+    //"${google_compute_instance.test2.self_link}",
+  //]
+
+  named_port {
+    name = "http"
+    port = "8080"
+  }
+
+  named_port {
+    name = "https"
+    port = "8443"
+  }
+
+  //zone = "us-central1-a"
+}
+
