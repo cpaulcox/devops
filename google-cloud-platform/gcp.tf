@@ -25,6 +25,17 @@ provider "google" {
   zone        = "us-central1-b"
 }
 
+
+// Local variables for values used in multiple places (DRY).
+locals {
+  ip_cidr_range_app_servers = "172.16.0.0/24"
+  ip_cidr_range_database_servers = "172.16.1.0/24"
+
+  database_port = 5432
+}
+
+
+
 # Default service account
 #data "google_compute_default_service_account" "default" { }
 
@@ -47,7 +58,7 @@ resource "google_compute_network" "sky_net" {
 
 resource "google_compute_subnetwork" "sky_subnet_app_server" {
   name          = "app-servers-subnet"
-  ip_cidr_range = "172.16.0.0/24"
+  ip_cidr_range = "${local.ip_cidr_range_app_servers}"
   region        = "us-central1"
   network       = "${google_compute_network.sky_net.self_link}"
 #   secondary_ip_range {
@@ -58,7 +69,7 @@ resource "google_compute_subnetwork" "sky_subnet_app_server" {
 
 resource "google_compute_subnetwork" "sky_subnet_database" {
   name          = "databases-subnet"
-  ip_cidr_range = "172.16.1.0/24"
+  ip_cidr_range = "${local.ip_cidr_range_database_servers}"
   region        = "us-central1"
   network       = "${google_compute_network.sky_net.self_link}"
 #   secondary_ip_range {
@@ -299,7 +310,7 @@ resource "google_compute_backend_service" "http_proxy_backend" {
   protocol    = "HTTP"
   timeout_sec = 10
 
-  backend = ["${google_compute_instance_group.webservers.self_link}"] //instance groups (list of VMs)
+  //backend = ["${google_compute_instance_group.webservers.self_link}"] //instance groups (list of VMs)
 
   health_checks = ["${google_compute_http_health_check.http_health_check.self_link}"]
 }
@@ -310,25 +321,25 @@ resource "google_compute_http_health_check" "http_health_check" {
   check_interval_sec = 1
   timeout_sec        = 1
 }
-resource "google_compute_instance_group" "webservers" {
-  name        = "terraform-webservers"
-  description = "Terraform test instance group"
+# resource "google_compute_instance_group" "webservers" {
+#   name        = "terraform-webservers"
+#   description = "Terraform test instance group"
 
-  //instances = [
-  //  "${google_compute_instance.terminator_1.self_link}"//,
-    //"${google_compute_instance.test2.self_link}",
-  //]
+#   instances = [
+#     "${google_compute_instance.terminator_1.self_link}"//,
+#     //"${google_compute_instance.test2.self_link}",
+#   ]
 
-  named_port {
-    name = "http"
-    port = "8080"
-  }
+#   named_port {
+#     name = "http"
+#     port = "8080"
+#   }
 
-  named_port {
-    name = "https"
-    port = "8443"
-  }
+#   named_port {
+#     name = "https"
+#     port = "8443"
+#   }
 
-  //zone = "us-central1-a"
-}
+#   //zone = "us-central1-a"
+# }
 
