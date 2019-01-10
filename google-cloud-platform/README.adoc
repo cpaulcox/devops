@@ -1,0 +1,29 @@
+== GCP
+
+=== Bootstrap
+
+In the GCP console:
+
+. Create a service account
+. Create an f1-micro in us-east1 with name `bootstrap`
+. Associate the instance with the service account and label with key `keep` and value `true` to avoid deletion.
+. Launch the instance and ssh via the GCP console
+
+Inside the bootstrap instance:
+
+---
+apt-get install -y git unzip
+
+wget https://releases.hashicorp.com/terraform/0.11.11/terraform_0.11.11_linux_amd64.zip
+unzip terraform_0.11.11_linux_amd64.zip
+rm terraform_0.11.11_linux_amd64.zip
+
+# Download the GCP provider
+./terraform init
+
+./terraform apply
+---
+
+The provider credentials (that in examples reference `account.json` aren't required, presumably, because terraform uses the instance's associated service account.
+
+
