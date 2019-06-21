@@ -25,15 +25,15 @@ data "google_container_cluster" "your-first-cluster-1" {
 #  value = "${data.google_container_cluster.your-first-cluster-1.instance_group_urls}"
 #}
 
-output "node_config" {
-  value = "${data.google_container_cluster.your-first-cluster-1.node_config}"
-}
+#output "node_config" {
+#  value = "${data.google_container_cluster.your-first-cluster-1.node_config}"
+#}
 
 
 
-output "node_pools" {
-  value = "${data.google_container_cluster.your-first-cluster-1.node_pool}"
-}
+#output "node_pools" {
+#  value = "${data.google_container_cluster.your-first-cluster-1.node_pool}"
+#}
 
 output "cluster" {
   value = "${data.google_container_cluster.your-first-cluster-1}"
