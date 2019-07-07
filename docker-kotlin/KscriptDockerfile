@@ -1,0 +1,36 @@
+# Alpine had problems with Java and SDKMAN!
+# lchmod (file attributes) error: Not supported
+# https://bugs.alpinelinux.org/issues/8089
+
+FROM fred
+
+MAINTAINER serandel@gmail.com
+
+# sdkman doesn't support ARM so must install Java separately from a base image
+
+# https://github.com/serandel/kscript-docker
+# docker run -i serandel/kscript 'println("Hello, world!")'
+# docker run -i serandel/kscript - < script.kts
+# It's highly advisable to create a volume for /root/.kscript so the JARs are cached between different invocations to containers. 
+# docker run -i -v kscript:/root/.kscript serandel/kscript 'println("Hello, world!")'
+
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get update && \
+	apt-get -y install curl zip unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install SDKMAN!
+RUN curl -s "https://get.sdkman.io" | bash
+
+
+
+RUN source /root/.sdkman/bin/sdkman-init.sh && \
+#    sdk install java 8.0.202-zulu && \
+    sdk install maven 3.6.0 && \
+    sdk install kotlin 1.3.21 && \
+    sdk install kscript 2.7.1
+
+ENTRYPOINT source /root/.sdkman/bin/sdkman-init.sh && /usr/bin/env kscript "$0" "$@"
+CMD        [ "--help" ]
+
