@@ -1,0 +1,20 @@
+FROM sample/sinatra 
+
+# args with default values override with docker build --build-arg.
+# Used later in environment and labels.
+ARG buildDate=01-01-1970
+ARG builtBy=Anon
+
+# Runtime environment variables available to the application in the container
+ENV buildDate=$buildDate
+ENV builtBy=$builtBy
+
+# Image labels available from docker inspect
+LABEL buildDate=$buildDate
+LABEL builtBy="$builtBy"
+
+ADD hello.rb $APP_HOME
+
+CMD ruby hello.rb
+
+

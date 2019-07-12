@@ -1,0 +1,14 @@
+= Desktop with RDP
+
+Not secure!!! Change the password!
+
+== Building and Running
+
+* `docker build -t desktop .`
+* `docker run --name mydesktop -d desktop` this only allows access onto the container's IP `docker inspect mydesktop` use -p to access from the host
+* `docker exec -it mydesktop bash` and `ps aux` to check that the xrdp and xrdp-sesman are both running.
+
+Uses `tail -f /dev/null` to keep the daemon container running.
+
+
+

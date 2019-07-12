@@ -1,0 +1,66 @@
+FROM kotlin-jdk as builder
+
+ARG org
+ARG repo
+ARG latest_commit
+
+ENV project ${repo:-hello-world} # default value
+
+WORKDIR /tmp
+
+RUN git clone https://github.com/$org/$repo
+
+WORKDIR $repo
+
+RUN gradle build distZip
+
+RUN git show -s --format=%H
+
+# can't set this from inside docker?  
+LABEL git_commit=$latest_commit
+
+
+############################# runtime stage ########################
+
+FROM kotlin-jre as runtime
+
+# args go out of scope across stages - need to redefine including defaults
+ARG org
+ARG repo
+ARG latest_commit
+
+RUN useradd -ms /bin/bash javalin
+
+USER javalin
+
+
+WORKDIR /home/javalin
+
+COPY --from=builder /tmp/$repo/build/distributions/*.zip .
+
+RUN unzip *.zip
+
+RUN rm *.zip
+
+WORKDIR ./$repo/bin
+
+RUN mv $repo runme
+
+LABEL git_commit=$latest_commit
+
+EXPOSE 8888
+
+# lack of interpolation so rename the shell file on the filesystem
+# entrypoint is used for commands always run on a container.  CMD is used for the default command or default args e.g. if entrypoint was ping the cmd could be localhost
+# cmd can be overridden via docker run -it <myimage> bash 
+# Use JSON array (param) syntax over shell syntax for better shutdown behaviour SIGTERM with docker stop
+ENTRYPOINT ["./runme"]
+
+
+
+
+
+
+
+
+

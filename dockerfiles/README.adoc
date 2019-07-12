@@ -1,0 +1,58 @@
+= Dockerfiles
+
+
+== Remote Desktop
+
+
+xrdp as it is more secure?
+
+https://askubuntu.com/questions/234856/unable-to-do-remote-desktop-using-xrdp
+
+Modify listening port
+
+Check host firewall
+
+
+sudo netstat -anp | grep "LISTEN "
+
+Lists programs/PID (-p) for all sockets not just those that are connected (-a) and numeric (-n) ports.
+
+== IP Tables (Local Firewall Rules)
+
+* iptables changes are ephemeral until explicitly saved.
+* List rules by specification `sudo iptables -S`...looks like the command used to set the rule
+* List rules by spec and chain `sudo iptables -S TCP` or `sudo iptables -S INPUT`
+* List rules in tabular form `sudo iptables -L`
+* `sudo iptables -L INPUT` - input and accept rules
+* Listing rules and traffic (packets/bytes) `sudo iptables -L INPUT -v`
+
+sudo iptables -A IN_public_allow -p tcp -m tcp --dport 32626 -m conntrack --ctstate NEW -j ACCEPT
+
+
+
+rdesktop, vinagre, freerdp, Remmina --- RDP clients for Linux
+
+Docker ports...
+
+Expose can connect to docker container using the container's IP address.
+
+Using -p map this port to the host port.
+
+127.0.0.1 with vinagre worked to a mapped port when localhost wouldn't.
+
+
+=== Images
+
+* hiroom2/doxrdp-centos-7-xfce  worked when debian based ones failed.
+
+
+
+docker run --name desktop \
+           -p 3390:3389 \
+           -p 2222:22 \
+           -v .:/root/createusers.txt \
+           -v .:/home \
+           -dit --restart unless-stopped \
+           rattydave/docker-ubuntu-xrdp-mate-custom:18.04
+
+This image works well...can ingore the volume mappings and simply `docker exec -it desktop bash` and `adduser aUser` etc.

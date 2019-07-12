@@ -1,0 +1,7 @@
+= Kotlin Build and Runtime
+
+* kotlinJDK.docker uses the base JDK image and adds gradle, curl and git.  It does install the standalone Kotlin compiler but isn't used in the later build stage as the Gradle plugin does it all instead.
+* kotlinJRE.docker uses the base JRE image and adds Kotlin as a runtime.
+* kotlinSampleMultiStage.docker is a multi-stage build using the former two images as bases.  The first stage pulls the repo and uses Gradle to build it.  The second stage copies the build artefacts into the runtime application image.
+
+

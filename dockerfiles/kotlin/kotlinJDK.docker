@@ -1,0 +1,37 @@
+FROM openjdk:10-jdk-slim
+
+ARG KOTLIN_VERSION=1.2.50
+ENV KOTLIN_HOME=/usr/local/share/kotlinc
+ENV KOTLIN_COMPILER_ARCHIVE kotlin-compiler-${KOTLIN_VERSION}.zip
+ENV KOTLIN_COMPILER_URL https://github.com/JetBrains/kotlin/releases/download/v${KOTLIN_VERSION}/${KOTLIN_COMPILER_ARCHIVE}
+
+ARG GRADLE_VERSION=4.8.1
+ENV GRADLE_HOME=/usr/local/share/gradle
+ENV GRADLE_ARCHIVE gradle-${GRADLE_VERSION}-bin.zip
+ENV GRADLE_URL https://services.gradle.org/distributions/${GRADLE_ARCHIVE}
+
+WORKDIR /tmp
+
+RUN apt update \
+    && apt-get -y install curl git
+
+RUN mkdir -p $(dirname ${KOTLIN_HOME}) \
+    && curl --silent --location ${KOTLIN_COMPILER_URL} --output /tmp/${KOTLIN_COMPILER_ARCHIVE} \
+    && unzip /tmp/${KOTLIN_COMPILER_ARCHIVE} -d $(dirname ${KOTLIN_HOME}) \
+    && chmod 0755 ${KOTLIN_HOME}/bin/kotlin ${KOTLIN_HOME}/bin/kotlinc ${KOTLIN_HOME}/bin/kotlinc-js ${KOTLIN_HOME}/bin/kotlinc-jvm \
+    && rm -rf /tmp/${KOTLIN_COMPILER_ARCHIVE}
+
+# ENV PATH $PATH:${KOTLIN_HOME}/bin
+
+RUN mkdir -p $(dirname ${GRADLE_HOME}) \
+    && curl --silent --location ${GRADLE_URL} --output /tmp/gradle.zip \
+    # seems to override with the zipped dir name so added rename (mv)
+    && unzip /tmp/gradle.zip -d $(dirname ${GRADLE_HOME}) \
+#    && chmod 0755 ${GRADLE_HOME}/bin/gradle \
+    && mv ${GRADLE_HOME}-${GRADLE_VERSION} ${GRADLE_HOME} \
+    && rm -rf /tmp/gradle.zip
+
+ENV PATH $PATH:${GRADLE_HOME}/bin
+
+#RUN echo "fun main(args: Array<String>) { println(\"Hello, World!\") }" > /tmp/hello.kt
+#RUN kotlinc /tmp/hello.kt -include-runtime -d /tmp/hello.jar
