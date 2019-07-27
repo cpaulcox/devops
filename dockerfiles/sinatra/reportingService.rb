@@ -5,8 +5,8 @@ require 'sequel'
 
 def init_connection
 
-  host_name = "abc1234.tesco.org"
-  db_name   = "DRTPSO05_STORED_VALUE.ukroi.tesco.org" # SID
+  host_name = "abc.acme.org"
+  db_name   = "devdb.acme.org" # SID
   userid    =  "dbUser"
   password  = "password1"
 
@@ -16,7 +16,7 @@ def init_connection
   db
 end
 
-get '/StoredValueService/statistics/accounts' do
+get '/AService/statistics/accounts' do
 
     content_type :json
     cache_control :private, :must_revalidate, :no_cache
