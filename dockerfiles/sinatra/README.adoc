@@ -1,16 +1,24 @@
 = Ruby & Sinatra
 
-* Base image for Sinatra based apps
+* Base image for Ruby Apps
 * Inside a proxied network pass to Docker the proxy environment variables otherwise Gems won't build: `sudo docker build --build-arg http_proxy=$http_proxy --build-arg https_proxy=$https_proxy .`
-* The base image installs Sinatra and its dependencies and sets up and application home - `sudo docker build -t sample/sinatra -f DockerfileSinatra .`
-* The application image copies ruby source files into the APP_HOME directory, runs the application and labels the build. `sudo docker build -t sample/hello-sinatra -f DockerfileHelloSinatra .`
+
+The base image uses a `slim` image and works on ARM and Intel.
+
+The base image simply installs whatever is in the Gemfile.
+
+The multi-stage build then uses this to create a runnable Sinatra server.
+
+`sudo docker build -t nancy -f Dockerfile .`
+
+* The application image copies ruby source files into the APP_HOME directory, runs the application and labels the build.
 
 
 == To Run
 
 Run as a daemon with a name to simplify stopping.  `--rm` is less useful and hard to stop the container without a name or by ctrl+c.
 
-`docker run --name helloSinatra -d sample/hello-sinatra`
+`docker run --name helloSinatra -d nancy`
 
 Use `docker inspect helloSinatra | grep IP` to get the container IP Address which can be used on port 8080 to access the site or run using -p8080:8080 to access via the host's IP (or _localhost_ if running locally).
 
@@ -19,7 +27,7 @@ Sample script:
 
 ----
 
-docker run --name helloSinatra -p 8080:8080 -d sample/hello-sinatra
+docker run --name helloSinatra -p 8080:8080 -d nancy
 docker inspect helloSinatra | grep IP
 docker logs helloSinatra
 docker stop helloSinatra
@@ -29,8 +37,6 @@ curl localhost:8080/
 curl localhost:8080/now
 curl {container IP}:8080/
 curl {container IP}:8080/now
-
-
 
 ----
 
