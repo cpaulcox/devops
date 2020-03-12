@@ -30,6 +30,9 @@ LABEL buildDate=$buildDate
 LABEL builtBy="$builtBy"
 
 ADD hello.rb $APP_HOME
+# Add TLS self-signed private key and certificate
+ADD example.key $APP_HOME
+ADD example.crt $APP_HOME
 
 CMD ruby hello.rb
 

@@ -1,2 +1,7 @@
 .terraform/
 terraform.tfstate*
+
+# Exclude keys and certificates
+*.key
+*.crt
+/keys
