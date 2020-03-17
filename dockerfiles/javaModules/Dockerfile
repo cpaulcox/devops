@@ -1,27 +1,19 @@
-# java --list-modules
-# Also hardens JVM (JRE)
+FROM ubuntu:19.10
 
-FROM openjdk:10.0.1 as builder
+RUN apt update -y && apt install -y curl unzip
 
-RUN jlink \
-    --add-modules java.xml.bind,java.sql,java.naming,java.management,java.instrument,java.security.jgss \
-    --verbose \
-    --strip-debug \
-    --compress 2 \
-    --no-header-files \
-    --no-man-pages \
-    --output /opt/jre-minimal
+# https://adoptopenjdk.net/releases.html?variant=openjdk13&jvmVariant=hotspot
 
-FROM panga/alpine:3.7-glibc2.25
+RUN mkdir -p /etc/jdk && mkdir -p /etc/kotlin
 
-COPY --from=builder /opt/jre-minimal /opt/jre-minimal
+RUN curl -L https://github.com/AdoptOpenJDK/openjdk13-binaries/releases/download/jdk-13.0.2%2B8/OpenJDK13U-jdk_arm_linux_hotspot_13.0.2_8.tar.gz -o /etc/jdk/jdk.tar.gz
 
-ENV LANG=C.UTF-8 \
-    PATH=${PATH}:/opt/jre-minimal/bin
+RUN cd /etc/jdk && tar xvf jdk.tar.gz && rm jdk.tar.gz && mv jdk* jdk
 
-ADD modules /opt/app/modules
+RUN curl -L https://github.com/JetBrains/kotlin/releases/download/v1.3.70/kotlin-compiler-1.3.70.zip -o /etc/kotlin/kt-comp.zip
 
-ARG JVM_OPTS
-ENV JVM_OPTS=${JVM_OPTS}
+RUN cd /etc/kotlin && unzip kt-comp.zip && rm kt-comp.zip
 
-CMD java ${JVM_OPTS} --upgrade-module-path /opt/app/modules --module spring.petclinic
+ENV JAVA_HOME /etc/jdk/jdk
+ENV PATH="$PATH:/etc/kotlin/kotlinc/bin"
+#CMD bash

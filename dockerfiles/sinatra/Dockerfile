@@ -8,6 +8,8 @@ FROM ruby:slim-buster as rubybase
 # Creates a local environment variable for later use in the Dockerfile
 ENV APP_HOME /app  
 RUN mkdir $APP_HOME
+RUN apt update
+RUN apt install -y cmake
 WORKDIR $APP_HOME
 ADD Gemfile* $APP_HOME/  
 
@@ -30,9 +32,12 @@ LABEL buildDate=$buildDate
 LABEL builtBy="$builtBy"
 
 ADD hello.rb $APP_HOME
+ADD config.ru $APP_HOME
 # Add TLS self-signed private key and certificate
 ADD example.key $APP_HOME
 ADD example.crt $APP_HOME
+ADD config $APP_HOME/config
 
-CMD ruby hello.rb
+#CMD ruby hello.rb
+CMD puma config.ru
 

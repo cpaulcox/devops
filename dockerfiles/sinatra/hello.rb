@@ -2,17 +2,22 @@ require 'sinatra'
 require 'json'
 require 'logger'
 
+puts "running hello sinatra"
+
 # TODO - TLS only, browser security headers CSP, strict TLS, etc.
 # - apache style HTTPD (access) logs
 
-
-
-
-
-set :port, 8080
+# When run as `ruby hello.rb` this will start puma instead of webbrick
+# However, puma TLS config is ignored so must run puma with a rackup file
+# that executes sinatra within in
+configure { set :server, :puma }
+# port and bind values used when run as `ruby hello.rb`
+set :port, 9292
 
 # Need to bind otherwise can only access http from inside the container not from the host
 set :bind, '0.0.0.0'
+
+
 
 configure :production, :development do
     enable :logging
@@ -34,6 +39,7 @@ logger = Logger.new('/proc/1/fd/1')
 #end
 
 get "/now" do
+  logger.debug "Time..."
   Time.now.iso8601
 end
 

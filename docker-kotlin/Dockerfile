@@ -23,7 +23,7 @@ RUN ZULU_ARCH=zulu11.31.16-ca-jdk11.0.3-linux_aarch32hf.tar.gz && \
     mkdir -p ${MAN_DIR} && \
     cd ${MAN_DIR} && find ${JAVA_HOME}/man/man1 -type f -name "*.1" -exec ln -s {} . \;
 
-ARG kotlin_version=1.3.20
+ARG kotlin_version=1.3.70
 
 LABEL description="Kotlin ${kotlin_version}"
 
